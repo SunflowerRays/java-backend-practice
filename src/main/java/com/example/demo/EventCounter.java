@@ -18,7 +18,7 @@ public class EventCounter {
         return counts;
     }
 
-    // the list of events is gotten, and the count of events for each type is passed to a hashmap as an integer with the username.
+    // the list of events is gotten, and the count of events for each type is passed to a hashmap as an integer with the type name.
     // getOrDefault, attempts to get the count of events for a type, and defaults to a value if the count isn't known.
     // here the default is 0 events counted for the type so far
     public Map<String, Integer> countByType(List<Event> events) {
