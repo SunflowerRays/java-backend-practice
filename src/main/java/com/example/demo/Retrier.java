@@ -1,6 +1,7 @@
 package com.example.demo;
 
 public class Retrier {
+
     public static void main(String[] args) {
         int maxAttempts = 3;
         FlakyService service = new FlakyService(maxAttempts);

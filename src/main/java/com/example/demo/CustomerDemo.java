@@ -18,8 +18,6 @@ public class CustomerDemo {
         customers.add(new Customer("Dieter", "Germany"));
         customers.add(new Customer("Tony", "Belgium"));
 
-        //customers.forEach(customer -> System.out.println(customer.toString()));
-
         Map<String, List<Customer>> customersOrderedByCountry = CustomerGrouper.groupByCountry(customers);
         customersOrderedByCountry.forEach((k, v) -> {
             System.out.println(k + " " + v.size());
