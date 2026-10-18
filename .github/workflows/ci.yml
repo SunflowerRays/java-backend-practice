@@ -20,6 +20,31 @@ jobs:
 
       - name: Build and run tests
         run: mvn -B verify
-      
+
       - name: Build Docker image
         run: docker build -t task-api .
+
+  publish-image:
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v5
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/sunflowerrays/task-api:latest
