@@ -19,14 +19,24 @@ import java.util.Collection;
 import org.springframework.web.bind.annotation.DeleteMapping;
 
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.web.bind.annotation.RequestParam;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
 
     private final TaskRepository repository;
+    private final LlmClient llmClient;
+    private final ObjectMapper objectMapper;
 
-    public TaskController(TaskRepository repository) {
+    public TaskController(TaskRepository repository, LlmClient llmClient, ObjectMapper objectMapper) {
         this.repository = repository;
+        this.llmClient = llmClient;
+        this.objectMapper = objectMapper;
     }
 
     // Creates a task. "done" is true only if the client sent true; otherwise false.
@@ -42,10 +52,15 @@ public class TaskController {
 
     //lists all the extant tasks.
     @GetMapping
-    public Collection<Task> list() {
+    public Collection<Task> list(@RequestParam(defaultValue = "0") int page,
+                                 @RequestParam(defaultValue = "20") int size) {
+
+        //Pagination. Here page size is constrained to between 1 and 100 items.
+        int safePage = Math.max(page, 0);
+        int safeSize = Math.min(Math.max(size, 1), 100);
 
         List<Task> result = new ArrayList<>();
-        for (TaskEntity e : repository.findAll()) {
+        for (TaskEntity e : repository.findAll(PageRequest.of(safePage, safeSize, Sort.by("id"))).getContent()) {
             result.add(new Task(e.getId(), e.getTitle(), e.isDone()));
         }
         return result;
@@ -72,4 +87,20 @@ public class TaskController {
         repository.deleteById(id);
 
     }
-}
+    @PostMapping("/generate")
+    public String generate(@Valid @RequestBody GenerateRequest request) {
+        String reply = llmClient.generate(request.prompt());
+        parseReply(reply);
+        return reply;
+    }
+
+    //Reads reply as JSON and parses its contents according to the Task record class.
+    private Task parseReply(String reply) {
+        try {
+            return objectMapper.readValue(reply, Task.class);
+        } catch (JacksonException e) {
+            throw new InvalidLlmReplyException("Model reply was not valid JSON", e);
+        }
+    }
+
+    }
