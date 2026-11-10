@@ -15,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -131,6 +132,21 @@ class TaskControllerTests {
                         .content(json))
                 .andExpect(status().isBadRequest());
     }
+
+
+    @Test
+    void generateReturns502WhenReplyIsMalformed() throws Exception {
+        //Arrange:
+        String json = "{\"prompt\": \"[[malformed]]\"}";
+        //Act & Assert:
+        mockMvc.perform(post("/tasks/generate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.status").value(502));
+    }
+
+
     // endregion
 
 

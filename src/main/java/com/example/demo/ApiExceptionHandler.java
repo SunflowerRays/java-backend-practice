@@ -25,4 +25,15 @@ public class ApiExceptionHandler {
         body.put("fields", fields);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
+
+    @ExceptionHandler(InvalidLlmReplyException.class)
+    public ResponseEntity<Map<String, Object>> handleInvalidLlmReply(InvalidLlmReplyException ex) {
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("status", 502);
+        body.put("error", "Invalid model reply");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body(body);
+    }
+
+
 }
